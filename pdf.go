@@ -7,6 +7,7 @@ import (
 	"github.com/joel-amaudruz/swiss-qr-invoice/assets"
 	"github.com/signintech/gopdf"
 	"github.com/skip2/go-qrcode"
+	"log"
 )
 
 const (
@@ -151,7 +152,7 @@ func getDoc(inv Invoice) (*wrapper.Doc, error) {
 
 func renderBasics(doc *wrapper.Doc) error {
 	doc.AddLine(0, yTop, 210, yTop, 0.1, wrapper.SolidLine)
-	doc.AddLine(62, yTop, 62, yBottom, 0.1, wrapper.SolidLine)
+	doc.AddLine(62, yTop, 62, yBottom, 0.1, wrapper.DashedLine)
 	scissors, err := assets.Scissors()
 	if err != nil {
 		return err
@@ -248,15 +249,25 @@ func paymentBasics(doc *wrapper.Doc, inv Invoice) error {
 		return err
 	}
 	qr.DisableBorder = true
-	png, err := qr.PNG(512)
-	if err != nil {
-		return err
+
+	matrix := qr.Bitmap()
+	const LEFT = 67.0
+	doc.SetStrokeColor(0, 0, 0)
+	doc.SetFillColor(0, 0, 0)
+	squareSize := 46.0 / float64(len(matrix))
+
+	for x, row := range matrix {
+		for y, block := range row {
+			if block {
+				pdfx := float64(x)*squareSize + LEFT - 0.01
+				pdfy := float64(y)*squareSize + yTop + 17 - 0.01
+				err := doc.Rectangle(pdfx, pdfy, pdfx+squareSize+0.02, pdfy+squareSize+0.02, "F", -1, -1)
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
+		}
 	}
-	qrImg, err := gopdf.ImageHolderByBytes(png)
-	if err != nil {
-		return err
-	}
-	doc.ImageByHolder(qrImg, 67, yTop+17, &gopdf.Rect{W: 46, H: 46})
 
 	cross, err := assets.CHCross()
 	if err != nil {
