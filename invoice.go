@@ -4,7 +4,7 @@ package swissqrinvoice
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 	"text/template"
 
@@ -16,6 +16,7 @@ import (
 
 // Invoice contains all necessary information for the generation of an invoice.
 type Invoice struct {
+	Language        string `yaml:"language" default:"de"`
 	ReceiverIBAN    string `yaml:"receiver_iban" default:"CH44 3199 9123 0008 8901 2"`
 	IsQrIBAN        bool   `yaml:"is_qr_iban" default:"true"`
 	ReceiverName    string `yaml:"receiver_name" default:"Robert Schneider AG"`
@@ -49,7 +50,7 @@ func New(useDefaults bool) (*Invoice, error) {
 
 // OpenInvoice opens a invoice config YAML file with the given path.
 func OpenInvoice(path string) (*Invoice, error) {
-	raw, err := ioutil.ReadFile(path)
+	raw, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +67,7 @@ func (i Invoice) Save(path string) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path, raw, 0644)
+	return os.WriteFile(path, raw, 0644)
 }
 
 // SaveAsPDF generates the invoice and save it as a PDF.
@@ -84,7 +85,7 @@ func (i Invoice) SaveQrConent(path string) error {
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path, []byte(raw), 0644)
+	return os.WriteFile(path, []byte(raw), 0644)
 }
 
 // GoPdf returns the invoice as a gopdf.GoPdf element. This can be used to further
@@ -106,6 +107,14 @@ func (i Invoice) Doc() (*wrapper.Doc, error) {
 		return nil, err
 	}
 	return doc, nil
+}
+
+// Returns the request language or the default.
+func (i Invoice) GetLanguage() string {
+	if i.Language == "" {
+		return defaultLanguage
+	}
+	return i.Language
 }
 
 // noPayee returns true if no fields of the payee are set

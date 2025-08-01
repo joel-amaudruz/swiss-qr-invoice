@@ -2,7 +2,6 @@ package swissqrinvoice
 
 import (
 	"fmt"
-
 	wrapper "github.com/72nd/gopdf-wrapper"
 	"github.com/72nd/gopdf-wrapper/fonts"
 	"github.com/72nd/swiss-qr-invoice/assets"
@@ -14,6 +13,108 @@ const (
 	yTop    = 192.0
 	yBottom = 297.0
 )
+
+const (
+	DE = "de"
+	FR = "fr"
+	EN = "en"
+	IT = "it"
+	RM = "rm"
+)
+
+var (
+	defaultLanguage = "de"
+)
+
+const (
+	DicReceipt        = "receipt"
+	DicPaymentSection = "payment_section"
+	DicReceiver       = "receiver"
+	DicPayee          = "payee"
+	DicReference      = "reference"
+	DicAdditionalInfo = "add_info"
+	DicCurrency       = "currency"
+	DicAmount         = "amount"
+	DicDepot          = "depot"
+)
+
+// Languages
+var dictionary = map[string]map[string]string{
+	"de": {
+		"receipt":         "Empfangsschein",
+		"payment_section": "Zahlteil",
+		"receiver":        "Konto / Zahlbar an",
+		"reference":       "Referenz",
+		"add_info":        "Zusätzliche Informationen",
+		"payee":           "Zahlbar durch",
+		"currency":        "Währung",
+		"amount":          "Betrag",
+		"depot":           "Annahmestelle",
+	},
+	"fr": {
+		"receipt":         "Récépissé",
+		"payment_section": "Section paiement",
+		"receiver":        "Compte / Payable à",
+		"reference":       "Référence",
+		"add_info":        "Informations supplémentaires",
+		"payee":           "Payable par",
+		"currency":        "Monnaie",
+		"amount":          "Montant",
+		"depot":           "Point de dépôt",
+	},
+	// ChatGPT from here.
+	"en": {
+		"receipt":         "Receipt",
+		"payment_section": "Payment section",
+		"receiver":        "Account / Payable to",
+		"reference":       "Reference",
+		"add_info":        "Additional information",
+		"payee":           "Payable by",
+		"currency":        "Currency",
+		"amount":          "Amount",
+		"depot":           "Drop-off point",
+	},
+	"it": {
+		"receipt":         "Ricevuta",
+		"payment_section": "Sezione pagamento",
+		"receiver":        "Conto / Pagabile a",
+		"reference":       "Riferimento",
+		"add_info":        "Informazioni aggiuntive",
+		"payee":           "Pagabile da",
+		"currency":        "Valuta",
+		"amount":          "Importo",
+		"depot":           "Punto di consegna",
+	},
+	"rm": {
+		"receipt":         "Quittanza",
+		"payment_section": "Secziun da pajament",
+		"receiver":        "Conto / Pajabel a",
+		"reference":       "Referenza",
+		"add_info":        "Infurmaziuns supplementaras",
+		"payee":           "Pajabel da",
+		"currency":        "Valuta",
+		"amount":          "Import",
+		"depot":           "Punct da consegna",
+	},
+}
+
+func SetDefaultLanguage(lang string) {
+	// TODO: Add languages.
+	if lang != DE && lang != FR && lang != EN && lang != IT && lang != RM {
+		panic(fmt.Sprintf("Invalid language %s", lang))
+	}
+	defaultLanguage = lang
+}
+
+func translate(lang, key string) string {
+	if phrases, ok := dictionary[lang]; ok {
+		if phrase, ok := phrases[key]; ok {
+			return phrase
+		}
+	}
+	panic("Translation Error: not exists:" + key)
+	return ""
+}
 
 func getDoc(inv Invoice) (*wrapper.Doc, error) {
 	doc, err := wrapper.NewDoc(12, 1)
@@ -61,8 +162,8 @@ func renderBasics(doc *wrapper.Doc) error {
 }
 
 func receivingInformation(doc *wrapper.Doc, inv Invoice) error {
-	doc.AddFormattedText(5, yTop+5, "Empfangsschein", 11, "bold")
-	doc.AddFormattedText(5, yTop+12, "Konto / Zahlbar an", 6, "bold")
+	doc.AddFormattedText(5, yTop+5, translate(inv.GetLanguage(), DicReceipt), 11, "bold")
+	doc.AddFormattedText(5, yTop+12, translate(inv.GetLanguage(), DicReceiver), 6, "bold")
 
 	yReceiverBase := yTop + 12 + doc.LineHeight(6)
 	recCnt := 0.0
@@ -86,7 +187,7 @@ func receivingInformation(doc *wrapper.Doc, inv Invoice) error {
 
 	yReferenceBase := yReceiverBase + doc.LineHeight(8)*recCnt + doc.LineHeight(9)
 	if inv.Reference != "" {
-		doc.AddFormattedText(5, yReferenceBase, "Referenz", 6, "bold")
+		doc.AddFormattedText(5, yReferenceBase, translate(inv.GetLanguage(), DicReference), 6, "bold")
 		doc.AddSizedText(5, yReferenceBase+doc.LineHeight(6), inv.Reference, 8)
 	}
 
@@ -94,7 +195,7 @@ func receivingInformation(doc *wrapper.Doc, inv Invoice) error {
 	if inv.Reference == "" {
 		yPayeeBase -= doc.LineHeight(6) + doc.LineHeight(8)
 	}
-	doc.AddFormattedText(5, yPayeeBase, "Zahlbar durch", 6, "bold")
+	doc.AddFormattedText(5, yPayeeBase, translate(inv.GetLanguage(), DicPayee), 6, "bold")
 	yPayeeBase += doc.LineHeight(8)
 	if inv.noPayee() {
 		emptyFields(doc, 5, yPayeeBase, 57, yPayeeBase+20)
@@ -119,8 +220,8 @@ func receivingInformation(doc *wrapper.Doc, inv Invoice) error {
 
 func receivingAmount(doc *wrapper.Doc, inv Invoice) {
 	yAmountBase := yTop + 68
-	doc.AddFormattedText(5, yAmountBase, "Währung", 6, "bold")
-	doc.AddFormattedText(18, yAmountBase, "Betrag", 6, "bold")
+	doc.AddFormattedText(5, yAmountBase, translate(inv.GetLanguage(), DicCurrency), 6, "bold")
+	doc.AddFormattedText(18, yAmountBase, translate(inv.GetLanguage(), DicAmount), 6, "bold")
 	doc.AddSizedText(5, yAmountBase+doc.LineHeight(9), inv.Currency, 8)
 	if inv.Amount != "" {
 		doc.AddSizedText(18, yAmountBase+doc.LineHeight(9), inv.Amount, 8)
@@ -131,12 +232,12 @@ func receivingAmount(doc *wrapper.Doc, inv Invoice) {
 
 func receivingOffice(doc *wrapper.Doc, inv Invoice) {
 	yReceivingBase := yTop + 82
-	text := "Annahmestelle"
+	text := translate(inv.GetLanguage(), DicDepot)
 	doc.AddFormattedText(40.5, yReceivingBase, text, 6, "bold")
 }
 
 func paymentBasics(doc *wrapper.Doc, inv Invoice) error {
-	doc.AddFormattedText(67, yTop+5, "Zahlteil", 11, "bold")
+	doc.AddFormattedText(67, yTop+5, translate(inv.GetLanguage(), DicPaymentSection), 11, "bold")
 
 	content, err := inv.qrContent()
 	if err != nil {
@@ -172,8 +273,8 @@ func paymentBasics(doc *wrapper.Doc, inv Invoice) error {
 
 func paymentAmount(doc *wrapper.Doc, inv Invoice) {
 	yAmountBase := yTop + 68
-	doc.AddFormattedText(67, yAmountBase, "Währung", 8, "bold")
-	doc.AddFormattedText(83, yAmountBase, "Betrag", 8, "bold")
+	doc.AddFormattedText(67, yAmountBase, translate(inv.GetLanguage(), DicCurrency), 8, "bold")
+	doc.AddFormattedText(83, yAmountBase, translate(inv.GetLanguage(), DicAmount), 8, "bold")
 	doc.AddSizedText(67, yAmountBase+doc.LineHeight(13), inv.Currency, 10)
 	if inv.Amount != "" {
 		doc.AddSizedText(83, yAmountBase+doc.LineHeight(13), inv.Amount, 10)
@@ -183,7 +284,7 @@ func paymentAmount(doc *wrapper.Doc, inv Invoice) {
 }
 
 func paymentInformation(doc *wrapper.Doc, inv Invoice) error {
-	doc.AddFormattedText(118, yTop+12, "Konto / Zahlbar an", 8, "bold")
+	doc.AddFormattedText(118, yTop+12, translate(inv.GetLanguage(), DicReceiver), 8, "bold")
 
 	yReceiverBase := yTop + 12 + doc.LineHeight(8)
 	recCnt := 0.0
@@ -207,7 +308,7 @@ func paymentInformation(doc *wrapper.Doc, inv Invoice) error {
 
 	yReferenceBase := yReceiverBase + doc.LineHeight(10)*recCnt + doc.LineHeight(11)
 	if inv.Reference != "" {
-		doc.AddFormattedText(118, yReferenceBase, "Referenz", 8, "bold")
+		doc.AddFormattedText(118, yReferenceBase, translate(inv.GetLanguage(), DicReference), 8, "bold")
 		doc.AddSizedText(118, yReferenceBase+doc.LineHeight(8), inv.Reference, 10)
 	}
 
@@ -216,7 +317,7 @@ func paymentInformation(doc *wrapper.Doc, inv Invoice) error {
 		yAdditionalBase -= doc.LineHeight(8) + doc.LineHeight(10)
 	}
 	if inv.AdditionalInfo != "" {
-		doc.AddFormattedText(118, yAdditionalBase, "Zusätzliche Informationen", 8, "bold")
+		doc.AddFormattedText(118, yAdditionalBase, translate(inv.GetLanguage(), DicAdditionalInfo), 8, "bold")
 		doc.AddSizedText(118, yAdditionalBase+doc.LineHeight(8), inv.AdditionalInfo, 10)
 	}
 
@@ -224,7 +325,7 @@ func paymentInformation(doc *wrapper.Doc, inv Invoice) error {
 	if inv.AdditionalInfo == "" {
 		yPayeeBase -= doc.LineHeight(8) + doc.LineHeight(10)
 	}
-	doc.AddFormattedText(118, yPayeeBase, "Zahlbar durch", 8, "bold")
+	doc.AddFormattedText(118, yPayeeBase, translate(inv.GetLanguage(), DicPayee), 8, "bold")
 	yPayeeBase += doc.LineHeight(8)
 	if inv.noPayee() {
 		emptyFields(doc, 118, yPayeeBase+doc.LineHeight(8), 118+65, yPayeeBase+doc.LineHeight(8)+25)
