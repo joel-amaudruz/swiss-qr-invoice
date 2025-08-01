@@ -252,6 +252,27 @@ func paymentBasics(doc *wrapper.Doc, inv Invoice) error {
 
 	matrix := qr.Bitmap()
 	const LEFT = 67.0
+	const CROSS_X = 67 + 19.8
+	const CROSS_Y = yTop + 17 + 19.8
+	const CROSS_SIZE = 7.8
+	const CROSS_MARGE = 1.0
+	const CROSS_BLACK_SIZE = CROSS_SIZE - (2 * CROSS_MARGE)
+	const CROSS_BLACK_LEFT = CROSS_X + CROSS_MARGE
+	const CROSS_BLACK_TOP = CROSS_Y + CROSS_MARGE
+
+	const CROSS_CROSS_MARGIN = (CROSS_BLACK_SIZE / 490.0) * 70.0
+	const CROSS_CROSS_WIDTH = (CROSS_BLACK_SIZE / 490.0) * 100.0
+
+	const CROSS_CROSS_VERT_X1 = CROSS_BLACK_LEFT + (CROSS_BLACK_SIZE / 2.0) - (CROSS_CROSS_WIDTH / 2.0)
+	const CROSS_CROSS_VERT_X2 = CROSS_CROSS_VERT_X1 + CROSS_CROSS_WIDTH
+	const CROSS_CROSS_VERT_Y1 = CROSS_BLACK_TOP + CROSS_CROSS_MARGIN
+	const CROSS_CROSS_VERT_Y2 = CROSS_CROSS_VERT_Y1 + CROSS_BLACK_SIZE - (2 * CROSS_CROSS_MARGIN)
+
+	const CROSS_CROSS_HORIZ_X1 = CROSS_BLACK_LEFT + CROSS_CROSS_MARGIN
+	const CROSS_CROSS_HORIZ_X2 = CROSS_BLACK_LEFT + CROSS_BLACK_SIZE - CROSS_CROSS_MARGIN
+	const CROSS_CROSS_HORIZ_Y1 = CROSS_BLACK_TOP + (CROSS_BLACK_SIZE / 2.0) - (CROSS_CROSS_WIDTH / 2.0)
+	const CROSS_CROSS_HORIZ_Y2 = CROSS_CROSS_HORIZ_Y1 + CROSS_CROSS_WIDTH
+
 	doc.SetStrokeColor(0, 0, 0)
 	doc.SetFillColor(0, 0, 0)
 	squareSize := 46.0 / float64(len(matrix))
@@ -261,6 +282,10 @@ func paymentBasics(doc *wrapper.Doc, inv Invoice) error {
 			if block {
 				pdfx := float64(x)*squareSize + LEFT - 0.01
 				pdfy := float64(y)*squareSize + yTop + 17 - 0.01
+				if pdfx >= CROSS_X && pdfx+0.02 <= CROSS_X+CROSS_SIZE &&
+					pdfy >= CROSS_Y && pdfy+0.02 <= CROSS_Y+CROSS_SIZE {
+					continue
+				}
 				err := doc.Rectangle(pdfx, pdfy, pdfx+squareSize+0.02, pdfy+squareSize+0.02, "F", -1, -1)
 				if err != nil {
 					log.Fatal(err)
@@ -269,16 +294,43 @@ func paymentBasics(doc *wrapper.Doc, inv Invoice) error {
 		}
 	}
 
-	cross, err := assets.CHCross()
-	if err != nil {
-		return err
-	}
-	crossImg, err := gopdf.ImageHolderByBytes(cross)
-	if err != nil {
-		return err
-	}
-	doc.ImageByHolder(crossImg, 67+19.4, yTop+17+19.4, &gopdf.Rect{W: 7.28, H: 7.28})
+	// Croix suisse: Le carré noir centrale
+	doc.SetStrokeColor(0, 0, 0)
+	doc.SetFillColor(0, 0, 0)
 
+	err = doc.Rectangle(CROSS_X+CROSS_MARGE, CROSS_Y+CROSS_MARGE, CROSS_X+CROSS_SIZE-CROSS_MARGE, CROSS_Y+CROSS_SIZE-CROSS_MARGE, "F", -1, -1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	doc.SetStrokeColor(255, 255, 255)
+	doc.SetFillColor(255, 255, 255)
+
+	err = doc.Rectangle(CROSS_CROSS_VERT_X1, CROSS_CROSS_VERT_Y1, CROSS_CROSS_VERT_X2, CROSS_CROSS_VERT_Y2, "F", -1, -1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = doc.Rectangle(CROSS_CROSS_HORIZ_X1, CROSS_CROSS_HORIZ_Y1, CROSS_CROSS_HORIZ_X2, CROSS_CROSS_HORIZ_Y2, "F", -1, -1)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	doc.SetStrokeColor(0, 0, 0)
+	doc.SetFillColor(0, 0, 0)
+
+	/*
+		cross, err := assets.CHCross()
+		if err != nil {
+			return err
+		}
+		crossImg, err := gopdf.ImageHolderByBytes(cross)
+		if err != nil {
+			return err
+		}
+		doc.ImageByHolder(crossImg, 67+19.4, yTop+17+19.4, &gopdf.Rect{W: 7.28, H: 7.28})
+
+	*/
 	return nil
 }
 
