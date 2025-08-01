@@ -4,7 +4,7 @@ import (
 	"fmt"
 	wrapper "github.com/72nd/gopdf-wrapper"
 	"github.com/72nd/gopdf-wrapper/fonts"
-	"github.com/72nd/swiss-qr-invoice/assets"
+	"github.com/joel-amaudruz/swiss-qr-invoice/assets"
 	"github.com/signintech/gopdf"
 	"github.com/skip2/go-qrcode"
 )
