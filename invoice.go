@@ -79,8 +79,8 @@ func (i Invoice) SaveAsPDF(path string) error {
 	return doc.WritePdf(path)
 }
 
-// SaveQrConent saves the content of the QR code to a text file for debugging.
-func (i Invoice) SaveQrConent(path string) error {
+// SaveQrContent saves the content of the QR code to a text file for debugging.
+func (i Invoice) SaveQrContent(path string) error {
 	raw, err := i.qrContent()
 	if err != nil {
 		return err

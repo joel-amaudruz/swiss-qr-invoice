@@ -88,7 +88,7 @@ func main() {
 					if err != nil {
 						logrus.Fatal(err)
 					}
-					if err := inv.SaveQrConent(c.String("output")); err != nil {
+					if err := inv.SaveQrContent(c.String("output")); err != nil {
 						logrus.Fatal(err)
 					}
 					return nil
