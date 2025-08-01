@@ -3,3 +3,6 @@ build/*
 
 invoice-cli/*yml
 invoice-cli/*pdf
+
+#JetBrains
+.idea/
