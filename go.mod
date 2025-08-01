@@ -1,4 +1,4 @@
-module github.com/72nd/swiss-qr-invoice
+module github.com/joel-amaudruz/swiss-qr-invoice
 
 go 1.24.5
 
