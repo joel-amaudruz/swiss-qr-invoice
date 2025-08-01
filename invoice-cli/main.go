@@ -1,11 +1,10 @@
 package main
 
 import (
-	"os"
-
-	invoice "github.com/72nd/swiss-qr-invoice"
+	invoice "github.com/joel-amaudruz/swiss-qr-invoice"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
+	"os"
 )
 
 func main() {
