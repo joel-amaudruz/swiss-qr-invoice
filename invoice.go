@@ -16,9 +16,10 @@ import (
 
 // Invoice contains all necessary information for the generation of an invoice.
 type Invoice struct {
-	Language        string `yaml:"language" default:"de"`
-	ReceiverIBAN    string `yaml:"receiver_iban" default:"CH44 3199 9123 0008 8901 2"`
-	IsQrIBAN        bool   `yaml:"is_qr_iban" default:"true"`
+	Language string `yaml:"language" default:"fr"`
+	//ReceiverIBAN    string `yaml:"receiver_iban" default:"CH44 3199 9123 0008 8901 2"`
+	ReceiverIBAN    string `yaml:"receiver_iban" default:"CH74 0900 0000 1715 6669 1"`
+	IsQrIBAN        bool   `yaml:"is_qr_iban" default:"false"`
 	ReceiverName    string `yaml:"receiver_name" default:"Robert Schneider AG"`
 	ReceiverStreet  string `yaml:"receiver_street" default:"Rue du Lac"`
 	ReceiverNumber  string `yaml:"receiver_number" default:"12"`

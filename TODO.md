@@ -4,3 +4,5 @@
 - [OK] Croix suisse par Bloc et non comme image ajoutée.
 - Export SVG.
 - Ajout Twint (si possible).
+
+https://www.swiss-qr-invoice.org/validator/
